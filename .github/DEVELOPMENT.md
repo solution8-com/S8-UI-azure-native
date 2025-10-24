@@ -624,7 +624,7 @@ export interface Conversation {
 ### Pydantic Model Validation
 
 ```python
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationError
 from typing import Optional, List
 
 class ChatRequest(BaseModel):
