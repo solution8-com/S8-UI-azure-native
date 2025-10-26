@@ -43,6 +43,17 @@ export function parseAnswer(answer: AskResponse): ParsedAnswer {
     }
   })
 
+  // If no citation links found in text but citations exist, include all citations
+  // This handles Promptflow responses that don't use [doc1] notation
+  if (!citationLinks && answer.citations && answer.citations.length > 0) {
+    filteredCitations = answer.citations.map((citation, index) => {
+      const clonedCitation = cloneDeep(citation) as Citation
+      clonedCitation.id = (index + 1).toString()
+      clonedCitation.reindex_id = (index + 1).toString()
+      return clonedCitation
+    })
+  }
+
   filteredCitations = enumerateCitations(filteredCitations)
 
   return {
