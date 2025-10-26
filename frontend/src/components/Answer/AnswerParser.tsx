@@ -8,9 +8,8 @@ export type ParsedAnswer = {
   generated_chart: string | null
 } | null
 
-// Debug logging flag - can be controlled via environment variable or developer tools
+// Debug logging flag - can be controlled via developer tools
 // Set window.ENABLE_CITATION_DEBUG = true in browser console to enable detailed logging
-// Or set VITE_CITATION_DEBUG=true environment variable
 const isDebugEnabled = (): boolean => {
   if (typeof window !== 'undefined') {
     return !!(window as any).ENABLE_CITATION_DEBUG
