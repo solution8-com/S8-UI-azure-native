@@ -18,6 +18,10 @@ export type Citation = {
   metadata: string | null
   chunk_id: string | null
   reindex_id: string | null
+  // Promptflow-specific fields
+  docId?: string
+  page?: number
+  source?: string
 }
 
 export type ToolMessageContent = {

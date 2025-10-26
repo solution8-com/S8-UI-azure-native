@@ -180,6 +180,11 @@ const Chat = () => {
   }
 
   const makeApiRequestWithoutCosmosDB = async (question: ChatMessage["content"], conversationId?: string) => {
+    // Reset message state variables for new request
+    assistantMessage = {} as ChatMessage
+    toolMessage = {} as ChatMessage
+    assistantContent = ''
+    
     setIsLoading(true)
     setShowLoadingMessage(true)
     const abortController = new AbortController()
@@ -268,9 +273,13 @@ const Chat = () => {
             }
           })
         }
-        conversation.messages.push(toolMessage, assistantMessage)
+        isEmpty(toolMessage)
+          ? conversation.messages.push(assistantMessage)
+          : conversation.messages.push(toolMessage, assistantMessage)
         appStateContext?.dispatch({ type: 'UPDATE_CURRENT_CHAT', payload: conversation })
-        setMessages([...messages, toolMessage, assistantMessage])
+        isEmpty(toolMessage)
+          ? setMessages([...messages, assistantMessage])
+          : setMessages([...messages, toolMessage, assistantMessage])
       }
     } catch (e) {
       if (!abortController.signal.aborted) {
@@ -307,6 +316,11 @@ const Chat = () => {
   }
 
   const makeApiRequestWithCosmosDB = async (question: ChatMessage["content"], conversationId?: string) => {
+    // Reset message state variables for new request
+    assistantMessage = {} as ChatMessage
+    toolMessage = {} as ChatMessage
+    assistantContent = ''
+    
     setIsLoading(true)
     setShowLoadingMessage(true)
     const abortController = new AbortController()

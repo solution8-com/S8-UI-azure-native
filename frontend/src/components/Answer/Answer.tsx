@@ -353,19 +353,45 @@ export const Answer = ({ answer, onCitationClicked, onExectResultClicked }: Prop
         {chevronIsExpanded && (
           <div className={styles.citationWrapper}>
             {parsedAnswer?.citations.map((citation, idx) => {
+              // Use Promptflow format if available, otherwise fall back to original format
+              const hasPromptflowFormat = citation.docId || citation.source
+              
               return (
-                <span
-                  title={createCitationFilepath(citation, ++idx)}
+                <div
                   tabIndex={0}
                   role="link"
                   key={idx}
                   onClick={() => onCitationClicked(citation)}
                   onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? onCitationClicked(citation) : null)}
-                  className={styles.citationContainer}
-                  aria-label={createCitationFilepath(citation, idx)}>
-                  <div className={styles.citation}>{idx}</div>
-                  {createCitationFilepath(citation, idx, true)}
-                </span>
+                  className={hasPromptflowFormat ? styles.citationCardPromptflow : styles.citationContainer}
+                  aria-label={hasPromptflowFormat ? 
+                    `Citation ${citation.docId || ''} from ${citation.source || ''}` : 
+                    createCitationFilepath(citation, idx + 1)}>
+                  {hasPromptflowFormat ? (
+                    <div className={styles.citationContentPromptflow}>
+                      {citation.docId && (
+                        <div className={styles.citationDocId}>
+                          Doc ID: {citation.docId}
+                        </div>
+                      )}
+                      {citation.page !== undefined && (
+                        <div className={styles.citationPage}>
+                          Page: {citation.page}
+                        </div>
+                      )}
+                      {citation.source && (
+                        <div className={styles.citationSource}>
+                          {citation.source}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.citation}>{idx + 1}</div>
+                      {createCitationFilepath(citation, idx + 1, true)}
+                    </>
+                  )}
+                </div>
               )
             })}
           </div>
