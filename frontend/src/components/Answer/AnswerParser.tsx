@@ -60,94 +60,46 @@ export const enumerateCitations = (citations: Citation[]) => {
  * Maps Prompt Flow fields to existing Citation shape without mutating input.
  */
 const extractPromptFlowCitations = (answer: AskResponse): Citation[] => {
-  debugLog('[PromptFlow Citation Parser] Starting extraction from PromptFlow response')
+  debugLog('[PromptFlow Citation Parser] Starting extraction from top-level `citations`')
   debugLog('[PromptFlow Citation Parser] Input answer object:', safeStringify(answer))
-  
+
   const anyAnswer = answer as any
-  const choices = anyAnswer?.choices
-  
-  debugLog('[PromptFlow Citation Parser] Checking for choices array in response')
-  if (!Array.isArray(choices)) {
-    debugLog('[PromptFlow Citation Parser] ❌ No choices array found in response - returning empty citations')
+  const cits = anyAnswer?.citations
+
+  debugLog('[PromptFlow Citation Parser] Checking for top-level `citations` array')
+  if (!Array.isArray(cits)) {
+    debugLog('[PromptFlow Citation Parser] ❌ No `citations` array found - returning empty citations')
     return []
   }
-  debugLog(`[PromptFlow Citation Parser] ✓ Found choices array with ${choices.length} choice(s)`)
+  debugLog(`[PromptFlow Citation Parser] ✓ Found citations array with ${cits.length} item(s)`)
 
   const out: Citation[] = []
 
-  for (const choice of choices) {
-    debugLog('[PromptFlow Citation Parser] Processing choice:', safeStringify(choice))
-    const messages = choice?.messages
-    
-    if (!Array.isArray(messages)) {
-      debugLog('[PromptFlow Citation Parser] ⚠ Choice does not contain messages array - skipping')
+  for (let i = 0; i < cits.length; i++) {
+    const pf = cits[i]
+    debugLog(`[PromptFlow Citation Parser] Processing item ${i + 1}/${cits.length}:`, safeStringify(pf, 500))
+
+    // Only treat as Prompt Flow if PF-specific keys exist
+    const hasPFKeys = pf && (pf.docID != null || pf.pageSource != null || pf.URL != null)
+    if (!hasPFKeys) {
+      debugLog('[PromptFlow Citation Parser] ⚠ Item lacks PF keys {docID,pageSource,URL} - skipping')
       continue
     }
-    debugLog(`[PromptFlow Citation Parser] ✓ Found messages array with ${messages.length} message(s)`)
 
-    for (const msg of messages) {
-      debugLog('[PromptFlow Citation Parser] Examining message:', safeStringify(msg))
-      
-      if (msg?.role !== 'tool') {
-        debugLog(`[PromptFlow Citation Parser] ⚠ Message role is "${msg?.role}", not "tool" - skipping`)
-        continue
-      }
-      debugLog('[PromptFlow Citation Parser] ✓ Found message with role="tool"')
-      
-      if (msg?.content == null) {
-        debugLog('[PromptFlow Citation Parser] ⚠ Tool message has null/undefined content - skipping')
-        continue
-      }
-      debugLog('[PromptFlow Citation Parser] ✓ Tool message has content')
-
-      let contentObj: any = msg.content
-      if (typeof msg.content === 'string') {
-        debugLog('[PromptFlow Citation Parser] Content is a string, attempting to parse as JSON')
-        debugLog('[PromptFlow Citation Parser] Raw content string:', msg.content)
-        try {
-          contentObj = JSON.parse(msg.content)
-          debugLog('[PromptFlow Citation Parser] ✓ Successfully parsed JSON content:', safeStringify(contentObj))
-        } catch (err) {
-          debugLog('[PromptFlow Citation Parser] ❌ Failed to parse JSON content:', err)
-          continue
-        }
-      } else {
-        debugLog('[PromptFlow Citation Parser] Content is already an object (not a string)')
-      }
-
-      const cits = contentObj?.citations
-      debugLog('[PromptFlow Citation Parser] Checking for citations array in parsed content')
-      if (!Array.isArray(cits)) {
-        debugLog('[PromptFlow Citation Parser] ⚠ No citations array found in content object - skipping')
-        debugLog('[PromptFlow Citation Parser] Content object keys:', Object.keys(contentObj ?? {}))
-        continue
-      }
-      debugLog(`[PromptFlow Citation Parser] ✓ Found citations array with ${cits.length} citation(s)`)
-
-      for (let i = 0; i < cits.length; i++) {
-        const pf = cits[i]
-        debugLog(`[PromptFlow Citation Parser] Processing citation ${i + 1}/${cits.length}:`, safeStringify(pf, 500))
-        
-        const citation: Citation = {
-          id: pf?.docId ?? String(i + 1),
-          content: pf?.content ?? '',
-          title: pf?.title ?? null,
-          filepath: pf?.source ?? pf?.filepath ?? null,
-          url: pf?.url ?? null,
-          metadata: pf?.page != null ? JSON.stringify({ page: pf.page }) : (pf?.metadata ?? null),
-          chunk_id: pf?.chunk_id ?? null,
-          reindex_id: null,
-          part_index: pf?.page ?? undefined
-        }
-        
-        debugLog(`[PromptFlow Citation Parser] ✓ Created Citation object:`, safeStringify(citation, 500))
-        debugLog(`[PromptFlow Citation Parser]   - docId: ${pf?.docId} → id: ${citation.id}`)
-        debugLog(`[PromptFlow Citation Parser]   - source: ${pf?.source} → filepath: ${citation.filepath}`)
-        debugLog(`[PromptFlow Citation Parser]   - page: ${pf?.page} → part_index: ${citation.part_index}`)
-        
-        out.push(citation)
-      }
+    const citation: Citation = {
+      id: pf.docID ?? String(i + 1),
+      content: pf.content ?? '',
+      title: pf.title ?? null,
+      filepath: pf.pageSource ?? null,
+      url: pf.URL ?? null,
+      metadata: pf?.page != null ? JSON.stringify({ page: pf.page }) : (pf?.metadata ?? null),
+      chunk_id: pf?.chunk_id ?? null,
+      reindex_id: null,
+      part_index: pf?.page ?? undefined
     }
+
+    debugLog('[PromptFlow Citation Parser] ✓ Created Citation object:', safeStringify(citation, 500))
+    out.push(citation)
   }
 
   debugLog(`[PromptFlow Citation Parser] ✅ Extraction complete - found ${out.length} total citation(s)`)
