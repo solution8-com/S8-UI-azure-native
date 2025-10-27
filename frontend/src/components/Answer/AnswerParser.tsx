@@ -8,13 +8,17 @@ export type ParsedAnswer = {
   generated_chart: string | null
 } | null
 
+if (typeof window !== 'undefined') {
+  (window as any).ENABLE_CITATION_DEBUG = true
+}
+
 // Debug logging flag - can be controlled via developer tools
 // Set window.ENABLE_CITATION_DEBUG = true in browser console to enable detailed logging
 const isDebugEnabled = (): boolean => {
   if (typeof window !== 'undefined') {
     return !!(window as any).ENABLE_CITATION_DEBUG
   }
-  return true
+  return false
 }
 
 // Safe JSON stringification with size limit to avoid performance issues
