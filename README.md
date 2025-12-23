@@ -2,6 +2,16 @@
 
 This repo contains boilerplate code for a chat webapp that integrates with Azure OpenAI.
 
+## 📖 Documentation
+
+### Image Display and Backend Integration
+For detailed information about image handling, data flow, and backend integration options:
+
+- **[Image Documentation Index](./IMAGE_DOCUMENTATION_INDEX.md)** - Central hub for all image-related documentation
+- **[Image Display Data Flow](./IMAGE_DISPLAY_DATA_FLOW.md)** - Complete technical reference for image formats and backend integration
+- **[Quick Reference Guide](./QUICK_REFERENCE_IMAGE_FORMATS.md)** - Quick answers and examples for developers
+- **[Quality of Life Features](./IMAGE_QUALITY_OF_LIFE_FEATURES.md)** - User experience improvements and optimizations
+
 ## Prerequisites
 - An existing Azure OpenAI resource and model deployment of a chat model (e.g. `gpt-35-turbo-16k`, `gpt-4`)
 - To use Azure OpenAI on your data, one of the following data sources:
