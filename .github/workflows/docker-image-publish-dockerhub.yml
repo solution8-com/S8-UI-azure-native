@@ -18,12 +18,12 @@ jobs:
 
       - name: Extract metadata
         id: meta
+        shell: powershell
         run: |
-          echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-          echo "TIMESTAMP=$(date -u +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          $SHORT_SHA = "${{ github.sha }}".Substring(0,7)
+          $TIMESTAMP = (Get-Date -Format 'yyyyMMdd_HHmmss' -AsUTC)
+          echo "SHORT_SHA=$SHORT_SHA" >> $env:GITHUB_OUTPUT
+          echo "TIMESTAMP=$TIMESTAMP" >> $env:GITHUB_OUTPUT
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -31,15 +31,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: WebApp.Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            docker.io/dawgone/air-gevo-regent-ui-azure:latest
-            docker.io/dawgone/air-gevo-regent-ui-azure:${{ steps.meta.outputs.SHORT_SHA }}
-            docker.io/dawgone/air-gevo-regent-ui-azure:${{ steps.meta.outputs.TIMESTAMP }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build Docker image
+        shell: powershell
+        run: |
+          $IMAGE_BASE = "docker.io/dawgone/air-gevo-regent-ui-azure"
+          $TAG_LATEST = "${IMAGE_BASE}:latest"
+          $TAG_SHA = "${IMAGE_BASE}:${{ steps.meta.outputs.SHORT_SHA }}"
+          $TAG_TIMESTAMP = "${IMAGE_BASE}:${{ steps.meta.outputs.TIMESTAMP }}"
+
+          docker build . --file WebApp.Dockerfile --tag $TAG_LATEST
+          docker tag $TAG_LATEST $TAG_SHA
+          docker tag $TAG_LATEST $TAG_TIMESTAMP
+
+      - name: Push Docker image
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        run: |
+          $IMAGE_BASE = "docker.io/dawgone/air-gevo-regent-ui-azure"
+          $TAG_LATEST = "${IMAGE_BASE}:latest"
+          $TAG_SHA = "${IMAGE_BASE}:${{ steps.meta.outputs.SHORT_SHA }}"
+          $TAG_TIMESTAMP = "${IMAGE_BASE}:${{ steps.meta.outputs.TIMESTAMP }}"
+
+          docker push $TAG_LATEST
+          docker push $TAG_SHA
+          docker push $TAG_TIMESTAMP
