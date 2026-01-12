@@ -11,10 +11,16 @@ on:
 
 jobs:
   build-push:
-    runs-on: windows-2022
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Switch to Linux containers
+        run: |
+          & "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchLinuxEngine
+        shell: powershell
+        continue-on-error: true
 
       - name: Extract metadata
         id: meta
