@@ -53,8 +53,6 @@ jobs:
           $TAG_SHA = "${IMAGE_BASE}:${{ steps.meta.outputs.SHORT_SHA }}"
           $TAG_TIMESTAMP = "${IMAGE_BASE}:${{ steps.meta.outputs.TIMESTAMP }}"
 
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            docker push $TAG_LATEST
-            docker push $TAG_SHA
-            docker push $TAG_TIMESTAMP
-          fi
+          docker push $TAG_LATEST
+          docker push $TAG_SHA
+          docker push $TAG_TIMESTAMP
