@@ -21,7 +21,7 @@ jobs:
         shell: powershell
         run: |
           $SHORT_SHA = "${{ github.sha }}".Substring(0,7)
-          $TIMESTAMP = (Get-Date -Format 'yyyyMMdd_HHmmss' -AsUTC)
+          $TIMESTAMP = (Get-Date).ToUniversalTime().ToString('yyyyMMdd_HHmmss')
           echo "SHORT_SHA=$SHORT_SHA" >> $env:GITHUB_OUTPUT
           echo "TIMESTAMP=$TIMESTAMP" >> $env:GITHUB_OUTPUT
 
